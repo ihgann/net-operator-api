@@ -8,17 +8,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NetworkSettingsTopology is the active network topology for a namespace.
-type NetworkSettingsTopology string
+// NetworkSettingsProvider is the active network provider type for a namespace.
+type NetworkSettingsProvider string
 
 const (
-	// NetworkSettingsTopologyVSphereDistributed is vSphere Distributed (VDS) network backing.
-	NetworkSettingsTopologyVSphereDistributed NetworkSettingsTopology = "vsphere-distributed"
-	// NetworkSettingsTopologyNSXTier1 is NSX-T Tier-1 (non-VPC) network backing.
-	NetworkSettingsTopologyNSXTier1 NetworkSettingsTopology = "nsx-tier1"
-	// NetworkSettingsTopologyVPC is VPC (NSX) network backing; see
-	// crd.nsx.vmware.com/v1alpha1.NetworkInfo for more detail when this applies.
-	NetworkSettingsTopologyVPC NetworkSettingsTopology = "vpc"
+	// NetworkSettingsProviderVSphereDistributed is vSphere Distributed (VDS) network backing.
+	NetworkSettingsProviderVSphereDistributed NetworkSettingsProvider = "vsphere-distributed"
+	// NetworkSettingsProviderNSXTier1 is NSX Tier-1 network backing.
+	NetworkSettingsProviderNSXTier1 NetworkSettingsProvider = "nsx-tier1"
+	// NetworkSettingsProviderVPC is VPC (NSX) network backing.
+	NetworkSettingsProviderVPC NetworkSettingsProvider = "vpc"
 )
 
 // +genclient
@@ -34,14 +33,14 @@ type NetworkSettings struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Topology is the active network topology in this namespace. Workloads and network-aware
+	// Provider is the active network provider in this namespace. Workloads and network-aware
 	// components should use this to determine the network backing that is in effect, including
 	// when choosing defaulting behavior or which provider-specific APIs to use when not specified
-	// elsewhere. This value is mutable; it may change when the configuration changes.
+	// elsewhere.
 	//
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=vsphere-distributed;nsx-tier1;vpc
-	Topology NetworkSettingsTopology `json:"topology"`
+	Provider NetworkSettingsProvider `json:"provider"`
 }
 
 // +kubebuilder:object:root=true
