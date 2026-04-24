@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2024 Broadcom. All Rights Reserved.
+// Copyright (c) 2020-2026 Broadcom. All Rights Reserved.
 // Broadcom Confidential. The term "Broadcom" refers to Broadcom Inc.
 // and/or its subsidiaries.
 
@@ -12,10 +12,14 @@ import (
 // ClientSecretReference contains info to locate an object of Kind Secret
 // which contains credential specifications for a load balancer.
 type ClientSecretReference struct {
-	// Name is the name of resource being referenced.
+	// name is the name of resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Name string `json:"name"`
-	// Namespace of the resource being referenced. If empty, cluster scoped resource is assumed.
+	// namespace of the resource being referenced. If empty, cluster scoped resource is assumed.
 	// +kubebuilder:default:=default
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Namespace string `json:"namespace,omitempty"`
 }
 
@@ -34,31 +38,47 @@ const (
 
 // LoadBalancerConfigCondition describes the state of a LoadBalancerConfig at a certain point
 type LoadBalancerConfigCondition struct {
-	// Type is the type of load balancer condition
+	// type is the type of load balancer condition
 	// Can be Ready or Failure
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Type LoadBalancerConfigConditionType `json:"type"`
-	// Status is the status of the condition
+	// status is the status of the condition
 	// Can be True, False, Unknown
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	Status corev1.ConditionStatus `json:"status"`
-	// Machine understandable string that gives the reason for the condition's last transition
+	// reason is a machine understandable string that gives the reason for the condition's last transition.
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Reason string `json:"reason,omitempty"`
-	// Human-readable message indicating details about last transition
+	// message is a human-readable message indicating details about last transition.
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Message string `json:"message,omitempty"`
-	// Provides a timestamp for when the LoadBalancerConfig object last transitioned from one status to another
+	// lastTransitionTime is the timestamp for when the LoadBalancerConfig object last transitioned from one status to another.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" patchStrategy:"replace"`
 }
 
 // LoadBalancerConfigProviderReference represents the specific load balancer instance that needs to be configured
 type LoadBalancerConfigProviderReference struct {
-	// APIGroup is the group for the resource being referenced
+	// apiGroup is the group for the resource being referenced
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	APIGroup string `json:"apiGroup"`
-	// Kind is the type of resource being referenced
+	// kind is the type of resource being referenced
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Kind string `json:"kind"`
-	// Name is the name of resource being referenced
+	// name is the name of resource being referenced
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Name string `json:"name"`
-	// API version of the referent
+	// apiVersion is the API version of the referent.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	APIVersion string `json:"apiVersion,omitempty"`
 }
 
@@ -77,16 +97,23 @@ const (
 
 // LoadBalancerConfigSpec defines the desired state of LoadBalancerConfig
 type LoadBalancerConfigSpec struct {
-	// Type describes type of load balancer.
+	// type describes type of load balancer.
 	// +kubebuilder:validation:Enum=haproxy;avi;foundation
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	Type LoadBalancerConfigType `json:"type"`
-	// ProviderRef is reference to a load balancer provider object that provides the details for this type of load balancer
+	// providerRef is reference to a load balancer provider object that provides the details for this type of load balancer
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	ProviderRef LoadBalancerConfigProviderReference `json:"providerRef"`
 }
 
 // LoadBalancerConfigStatus defines the observed state of LoadBalancerConfig
 type LoadBalancerConfigStatus struct {
-	// Conditions is an array of current observed load balancer conditions
+	// conditions is an array of current observed load balancer conditions
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL conditions (wire shape unchanged).
 	Conditions []LoadBalancerConfigCondition `json:"conditions,omitempty"`
 }
 
@@ -96,11 +123,20 @@ type LoadBalancerConfigStatus struct {
 // +kubebuilder:resource:scope=Cluster
 
 // LoadBalancerConfig is the Schema for the LoadBalancerConfigs API
+// +kubebuilder:subresource:status
 type LoadBalancerConfig struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// metadata is the standard object's metadata.
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   LoadBalancerConfigSpec   `json:"spec,omitempty"`
+	// spec describes the desired load balancer configuration.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
+	Spec LoadBalancerConfigSpec `json:"spec,omitempty"`
+	// status reflects the observed state of the load balancer configuration.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Status LoadBalancerConfigStatus `json:"status,omitempty"`
 }
 
@@ -110,7 +146,8 @@ type LoadBalancerConfig struct {
 type LoadBalancerConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []LoadBalancerConfig `json:"items"`
+	// +required
+	Items []LoadBalancerConfig `json:"items"`
 }
 
 func init() {
