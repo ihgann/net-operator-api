@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2024 Broadcom. All Rights Reserved.
+// Copyright (c) 2020-2026 Broadcom. All Rights Reserved.
 // Broadcom Confidential. The term "Broadcom" refers to Broadcom Inc.
 // and/or its subsidiaries.
 
@@ -37,33 +37,52 @@ const (
 
 // IPAddressAllocationCondition describes the state of an IPAddressAllocation at a specific point in time.
 type IPAddressAllocationCondition struct {
-	// Type is the type of the condition.
+	// type is the type of the condition.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Type IPAddressAllocationConditionType `json:"type"`
-	// Status reflects whether the condition is True, False, or Unknown.
+	// status reflects whether the condition is True, False, or Unknown.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	Status corev1.ConditionStatus `json:"status"`
-	// LastTransitionTime is the timestamp of the last change to the condition's status.
+	// lastTransitionTime is the timestamp of the last change to the condition's status.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Reason provides a machine-readable explanation for the last status transition.
+	// reason provides a machine-readable explanation for the last status transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Reason IPAddressAllocationConditionReason `json:"reason,omitempty"`
-	// Message provides a human-readable explanation for the last status transition.
+	// message provides a human-readable explanation for the last status transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Message string `json:"message,omitempty"`
 }
 
 // IPAddressAllocationSpec defines the desired state of an IPAddressAllocation, including the pool reference and an optional requested IP.
 type IPAddressAllocationSpec struct {
-	// PoolRef is the reference to the network's IP pool within the namespace.
+	// poolRef is the reference to the network's IP pool within the namespace.
 	// It currently only supports reference to a Network.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	PoolRef corev1.TypedLocalObjectReference `json:"poolRef"`
-	// RequestedIP is an optional field for a user to specify a particular IP they want to request.
+	// requestedIP is an optional field for a user to specify a particular IP they want to request.
 	// If omitted, the system will allocate a single IP address.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	RequestedIP string `json:"requestedIP,omitempty"`
 }
 
 // IPAddressAllocationStatus contains the current status of an IPAddressAllocation, including the allocated IP address and conditions.
 type IPAddressAllocationStatus struct {
-	// IPAddress is the actually allocated IP address.
+	// ipaddress is the actually allocated IP address.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	IPAddress string `json:"ipaddress,omitempty"`
-	// Conditions provide detailed information about the status of the allocation.
+	// conditions provide detailed information about the status of the allocation.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL conditions (wire shape unchanged).
 	Conditions []IPAddressAllocationCondition `json:"conditions,omitempty"`
 }
 
@@ -71,11 +90,20 @@ type IPAddressAllocationStatus struct {
 // +kubebuilder:object:root=true
 
 // IPAddressAllocation represents a request for IP address allocation, including the desired state and current status.
+// +kubebuilder:subresource:status
 type IPAddressAllocation struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// metadata is the standard object's metadata.
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              IPAddressAllocationSpec   `json:"spec,omitempty"`
-	Status            IPAddressAllocationStatus `json:"status,omitempty"`
+	// spec describes the desired IP address allocation.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
+	Spec IPAddressAllocationSpec `json:"spec,omitempty"`
+	// status reflects the observed state of the IP address allocation.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
+	Status IPAddressAllocationStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -84,7 +112,8 @@ type IPAddressAllocation struct {
 type IPAddressAllocationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []IPAddressAllocation `json:"items"`
+	// +required
+	Items []IPAddressAllocation `json:"items"`
 }
 
 // init function registers the IPAddressAllocation type with the scheme.

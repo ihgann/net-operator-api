@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2025 Broadcom. All Rights Reserved.
+// Copyright (c) 2020-2026 Broadcom. All Rights Reserved.
 // Broadcom Confidential. The term "Broadcom" refers to Broadcom Inc.
 // and/or its subsidiaries.
 
@@ -22,25 +22,41 @@ const (
 
 // IPConfig represents an IP configuration.
 type IPConfig struct {
-	// IP setting.
+	// ip setting.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	IP string `json:"ip"`
-	// IPFamily specifies the IP family (IPv4 vs IPv6) the IP belongs to.
+	// ipFamily specifies the IP family (IPv4 vs IPv6) the IP belongs to.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	IPFamily corev1.IPFamily `json:"ipFamily"`
-	// Gateway setting.
+	// gateway setting.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Gateway string `json:"gateway"`
-	// SubnetMask setting.
+	// subnetMask setting.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	SubnetMask string `json:"subnetMask"`
 }
 
 // NetworkInterfaceProviderReference contains info to locate a network interface provider object.
 type NetworkInterfaceProviderReference struct {
-	// APIGroup is the group for the resource being referenced.
+	// apiGroup is the group for the resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	APIGroup string `json:"apiGroup"`
-	// Kind is the type of resource being referenced
+	// kind is the type of resource being referenced
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Kind string `json:"kind"`
-	// Name is the name of resource being referenced
+	// name is the name of resource being referenced
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Name string `json:"name"`
-	// API version of the referent.
+	// apiVersion is the API version of the referent.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	APIVersion string `json:"apiVersion,omitempty"`
 }
 
@@ -70,17 +86,27 @@ const (
 
 // NetworkInterfaceCondition describes the state of a NetworkInterface at a certain point.
 type NetworkInterfaceCondition struct {
-	// Type is the type of network interface condition.
+	// type is the type of network interface condition.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Type NetworkInterfaceConditionType `json:"type"`
-	// Status is the status of the condition.
+	// status is the status of the condition.
 	// Can be True, False, Unknown.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	Status corev1.ConditionStatus `json:"status"`
-	// LastTransitionTime is the timestamp corresponding to the last status
+	// lastTransitionTime is the timestamp corresponding to the last status
 	// change of this condition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Machine understandable string that gives the reason for condition's last transition.
+	// reason is a machine understandable string that gives the reason for condition's last transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Reason NetworkInterfaceConditionReason `json:"reason,omitempty"`
-	// Human-readable message indicating details about last transition.
+	// message is a human-readable message indicating details about last transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Message string `json:"message,omitempty"`
 }
 
@@ -88,26 +114,42 @@ type NetworkInterfaceCondition struct {
 // Once NetworkInterfaceReady condition is True, it should contain configuration to use to place
 // a VM/Pod/Container's nic on the specified network.
 type NetworkInterfaceStatus struct {
-	// Conditions is an array of current observed network interface conditions.
+	// conditions is an array of current observed network interface conditions.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL conditions (wire shape unchanged).
 	Conditions []NetworkInterfaceCondition `json:"conditions,omitempty"`
-	// IPConfigs is an array of IP configurations for the network interface.
+	// ipConfigs is an array of IP configurations for the network interface.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	IPConfigs []IPConfig `json:"ipConfigs,omitempty"`
-	// MacAddress setting for the network interface.
+	// macAddress setting for the network interface.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	MacAddress string `json:"macAddress,omitempty"`
-	// ExternalID is a network provider specific identifier assigned to the network interface.
+	// externalID is a network provider specific identifier assigned to the network interface.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	ExternalID string `json:"externalID,omitempty"`
-	// NetworkID is an network provider specific identifier for the network backing the network
+	// networkID is an network provider specific identifier for the network backing the network
 	// interface.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	NetworkID string `json:"networkID,omitempty"`
-	// PortID is a network provider specific port identifier allocated for this network interface on
+	// portID is a network provider specific port identifier allocated for this network interface on
 	// the backing network. It is only valid on requested node and is set only if port allocation
 	// was requested.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	PortID string `json:"portID,omitempty"`
-	// ConnectionID is a network provider specific port connection identifier allocated for this
+	// connectionID is a network provider specific port connection identifier allocated for this
 	// network interface on the backing network. It is only valid on requested node and is set
 	// only if port allocation was requested.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	ConnectionID string `json:"connectionID,omitempty"`
-	// IPAssignmentMode indicates how IP addresses are assigned to this interface.
+	// ipAssignmentMode indicates how IP addresses are assigned to this interface.
 	// When unset:
 	// - If IP is assigned, it is assumed to be NetworkInterfaceIPAssignmentModeStaticPool.
 	// - If IP is unassigned, it is assumed to be NetworkInterfaceIPAssignmentModeDHCP.
@@ -115,6 +157,7 @@ type NetworkInterfaceStatus struct {
 	// When set to NetworkInterfaceIPAssignmentModeDHCP, indicates IP should be obtained via DHCP.
 	// When set to NetworkInterfaceIPAssignmentModeNone, indicates no IP assignment should be performed.
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	IPAssignmentMode NetworkInterfaceIPAssignmentMode `json:"ipAssignmentMode,omitempty"`
 }
 
@@ -141,42 +184,56 @@ const (
 
 // NetworkInterfacePortAllocation describes the settings for network interface port allocation request.
 type NetworkInterfacePortAllocation struct {
-	// NodeName is the node where port must be allocated for this network interface.
+	// nodeName is the node where port must be allocated for this network interface.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	NodeName string `json:"nodeName"`
 }
 
 // NetworkInterfaceSpec defines the desired state of NetworkInterface.
 type NetworkInterfaceSpec struct {
-	// NetworkName refers to a NetworkObject in the same namespace.
+	// networkName refers to a NetworkObject in the same namespace.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	NetworkName string `json:"networkName,omitempty"`
-	// Type is the type of NetworkInterface. Supported values are vmxnet3.
+	// type is the type of NetworkInterface. Supported values are vmxnet3.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Type NetworkInterfaceType `json:"type,omitempty"`
-	// ProviderRef is a reference to a provider specific network interface object
+	// providerRef is a reference to a provider specific network interface object
 	// that specifies the network interface configuration.
 	// If unset, default configuration is assumed.
+	// +optional
 	ProviderRef *NetworkInterfaceProviderReference `json:"providerRef,omitempty"`
-	// PortAllocation is a request to allocate a port for this network interface on the backing network.
+	// portAllocation is a request to allocate a port for this network interface on the backing network.
 	// This feature is currently supported only if backing network type is NetworkTypeVDS. In all other
 	// cases this field is ignored. Typically this is done implicitly by vCenter Server at the time
 	// of attaching a network interface to a network and should be left unset. This is used primarily when
 	// attachment of network interface to the network is done without vCenter Server's knowledge.
+	// +optional
 	PortAllocation *NetworkInterfacePortAllocation `json:"portAllocation,omitempty"`
-	// ExternalID describes a value that will be surfaced as status.externalID.
+	// externalID describes a value that will be surfaced as status.externalID.
 	// If this field is omitted, then it is up to the underlying network
 	// provider to surface any information in status.externalID.
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	ExternalID string `json:"externalID,omitempty"`
 }
 
 // NetworkInterfaceReference is an object that points to a NetworkInterface.
 type NetworkInterfaceReference struct {
-	// Kind is the type of resource being referenced.
+	// kind is the type of resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Kind string `json:"kind"`
-	// Name is the name of resource being referenced.
+	// name is the name of resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Name string `json:"name"`
-	// APIVersion of the referent.
+	// apiVersion is the API version of the referent.
 	//
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	APIVersion string `json:"apiVersion,omitempty"`
 }
 
@@ -186,11 +243,20 @@ type NetworkInterfaceReference struct {
 // NetworkInterface is the Schema for the networkinterfaces API.
 // A NetworkInterface represents a user's request for network configuration to use to place a
 // VM/Pod/Container's nic on a specified network.
+// +kubebuilder:subresource:status
 type NetworkInterface struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// metadata is the standard object's metadata.
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   NetworkInterfaceSpec   `json:"spec,omitempty"`
+	// spec describes the desired network interface configuration.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
+	Spec NetworkInterfaceSpec `json:"spec,omitempty"`
+	// status reflects the observed state of the network interface.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Status NetworkInterfaceStatus `json:"status,omitempty"`
 }
 
@@ -200,7 +266,8 @@ type NetworkInterface struct {
 type NetworkInterfaceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []NetworkInterface `json:"items"`
+	// +required
+	Items []NetworkInterface `json:"items"`
 }
 
 func init() {

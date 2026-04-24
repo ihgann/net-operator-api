@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2025 Broadcom. All Rights Reserved.
+// Copyright (c) 2020-2026 Broadcom. All Rights Reserved.
 // Broadcom Confidential. The term "Broadcom" refers to Broadcom Inc.
 // and/or its subsidiaries.
 
@@ -35,44 +35,64 @@ const (
 
 // VSphereDistributedNetworkCondition describes the state of a VSphereDistributedNetwork at a certain point.
 type VSphereDistributedNetworkCondition struct {
-	// Type is the type of VSphereDistributedNetwork condition.
+	// type is the type of VSphereDistributedNetwork condition.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Type VSphereDistributedNetworkConditionType `json:"type"`
-	// Status is the status of the condition.
+	// status is the status of the condition.
 	// Can be True, False, Unknown.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	Status corev1.ConditionStatus `json:"status"`
-	// Machine understandable string that gives the reason for condition's last transition.
+	// reason is a machine understandable string that gives the reason for condition's last transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Reason string `json:"reason,omitempty"`
-	// Human-readable message indicating details about last transition.
+	// message is a human-readable message indicating details about last transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Message string `json:"message,omitempty"`
-	// Provides a timestamp for when the VSphereDistributedNetwork object last transitioned from one status to another.
+	// lastTransitionTime is the timestamp for when the VSphereDistributedNetwork object last transitioned from one status to another.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" patchStrategy:"replace"`
 }
 
 // VSphereDistributedNetworkSpec defines the desired state of VSphereDistributedNetwork.
 type VSphereDistributedNetworkSpec struct {
-	// PortGroupID is an existing vSphere Distributed PortGroup identifier.
+	// portGroupID is an existing vSphere Distributed PortGroup identifier.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	PortGroupID string `json:"portGroupID"`
 
-	// IPAssignmentMode to use for network interfaces. If unset, defaults to IPAssignmentModeStaticPool.
+	// ipAssignmentMode to use for network interfaces. If unset, defaults to IPAssignmentModeStaticPool.
 	// For IPAssignmentModeDHCP and IPAssignmentModeNone, the IPPools, Gateway and SubnetMask
 	// fields should be empty/unset. When using IPAssignmentModeNone, no IP will be assigned
 	// and no DHCP client will be configured.
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	IPAssignmentMode IPAssignmentModeType `json:"ipAssignmentMode,omitempty"`
 
-	// IPPools references list of IPPool objects. This field should only be set when using
+	// ipPools references list of IPPool objects. This field should only be set when using
 	// IPAssignmentModeStaticPool. For all other modes (IPAssignmentModeDHCP, IPAssignmentModeNone), this should be set
 	// to an empty list.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	IPPools []IPPoolReference `json:"ipPools"`
 
-	// Gateway setting to use for network interfaces. This field should only be set when using
+	// gateway setting to use for network interfaces. This field should only be set when using
 	// IPAssignmentModeStaticPool. For all other modes (IPAssignmentModeDHCP, IPAssignmentModeNone), this should be set
 	// to an empty string.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Gateway string `json:"gateway"`
 
-	// SubnetMask setting to use for network interfaces. This field should only be set when using
+	// subnetMask setting to use for network interfaces. This field should only be set when using
 	// IPAssignmentModeStaticPool. For all other modes (IPAssignmentModeDHCP, IPAssignmentModeNone), this should be set
 	// to an empty string.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	SubnetMask string `json:"subnetMask"`
 }
 
@@ -90,19 +110,25 @@ const (
 
 // VLANTrunkRange represents a range of VLAN IDs for trunk configuration
 type VLANTrunkRange struct {
-	// Start represents the beginning of the VLAN ID range (inclusive).
+	// start represents the beginning of the VLAN ID range (inclusive).
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	Start int32 `json:"start"`
 
-	// End represents the end of the VLAN ID range (inclusive).
+	// end represents the end of the VLAN ID range (inclusive).
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	End int32 `json:"end"`
 }
 
 // VlanSpec represents the VLAN configuration.
 type VlanSpec struct {
-	// Type indicates the type of VLAN configuration (standard, trunk, or private).
+	// type indicates the type of VLAN configuration (standard, trunk, or private).
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Type VLANType `json:"type"`
 
-	// VlanID specifies the VLAN ID when Type is VLANTypeStandard.
+	// vlanID specifies the VLAN ID when Type is VLANTypeStandard.
 	// This field is ignored for other VLAN types.
 	// Possible values:
 	// - A value of 0 indicates there is no VLAN configuration for the port.
@@ -110,14 +136,16 @@ type VlanSpec struct {
 	// +optional
 	VlanID *int32 `json:"vlanID,omitempty"`
 
-	// TrunkRange specifies the ranges of allowed VLANs when Type is VLANTypeTrunk.
+	// trunkRange specifies the ranges of allowed VLANs when Type is VLANTypeTrunk.
 	// This field is ignored for other VLAN types.
 	// Each range's Start and End values must be between 0 and 4094 inclusive.
 	// Overlapping ranges are allowed.
+	// +listType=atomic
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	TrunkRange []VLANTrunkRange `json:"trunkRange,omitempty"`
 
-	// PrivateVlanID specifies the private VLAN ID when Type is VLANTypePrivate.
+	// privateVlanID specifies the private VLAN ID when Type is VLANTypePrivate.
 	// This field is ignored for other VLAN types.
 	// +optional
 	PrivateVlanID *int32 `json:"privateVlanID,omitempty"`
@@ -125,7 +153,7 @@ type VlanSpec struct {
 
 // VSphereDistributedPortConfig represents the port-level configuration for a vSphere Distributed Network
 type VSphereDistributedPortConfig struct {
-	// Vlan represents the VLAN configuration for this port.
+	// vlan represents the VLAN configuration for this port.
 	// If unset, indicates that no VLAN configuration has been retrieved yet for this port.
 	// +optional
 	Vlan *VlanSpec `json:"vlan,omitempty"`
@@ -133,10 +161,13 @@ type VSphereDistributedPortConfig struct {
 
 // VSphereDistributedNetworkStatus defines the observed state of VSphereDistributedNetwork.
 type VSphereDistributedNetworkStatus struct {
-	// Conditions is an array of current observed vSphere Distributed network conditions.
+	// conditions is an array of current observed vSphere Distributed network conditions.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL conditions (wire shape unchanged).
 	Conditions []VSphereDistributedNetworkCondition `json:"conditions,omitempty"`
 
-	// DefaultPortConfig represents the default port-level configuration that applies to all ports
+	// defaultPortConfig represents the default port-level configuration that applies to all ports
 	// unless overridden at the individual port level.
 	// +optional
 	DefaultPortConfig *VSphereDistributedPortConfig `json:"defaultPortConfig,omitempty"`
@@ -149,11 +180,20 @@ type VSphereDistributedNetworkStatus struct {
 
 // VSphereDistributedNetwork represents schema for a network backed by a vSphere Distributed PortGroup on vSphere
 // Distributed switch.
+// +kubebuilder:subresource:status
 type VSphereDistributedNetwork struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// metadata is the standard object's metadata.
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   VSphereDistributedNetworkSpec   `json:"spec,omitempty"`
+	// spec describes the desired vSphere distributed network configuration.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
+	Spec VSphereDistributedNetworkSpec `json:"spec,omitempty"`
+	// status reflects the observed state of the vSphere distributed network.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Status VSphereDistributedNetworkStatus `json:"status,omitempty"`
 }
 
@@ -163,7 +203,8 @@ type VSphereDistributedNetwork struct {
 type VSphereDistributedNetworkList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []VSphereDistributedNetwork `json:"items"`
+	// +required
+	Items []VSphereDistributedNetwork `json:"items"`
 }
 
 func init() {

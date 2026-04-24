@@ -1,5 +1,6 @@
-// Copyright (c) 2020 VMware, Inc. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2020-2026 Broadcom. All Rights Reserved.
+// Broadcom Confidential. The term "Broadcom" refers to Broadcom Inc.
+// and/or its subsidiaries.
 
 package v1alpha1
 
@@ -11,7 +12,7 @@ import (
 // The spec is used to configure the HAProxyLoadBalancer instance to correctly route traffic to services.
 // This spec supports HAProxyLoadBalancerConfig Dataplane API 2.0+ sidecar
 type HAProxyLoadBalancerConfigSpec struct {
-	// EndPointURLs is a list of the addresses for the DataPlane API servers used
+	// endPointURLs is a list of the addresses for the DataPlane API servers used
 	// to configure HAProxy.
 	// One or more DataPlane API endpoints are possible due to the following topologies:
 	// Single Node Topology
@@ -19,17 +20,21 @@ type HAProxyLoadBalancerConfigSpec struct {
 	// The strings should include the host, port, and API version, ex.:
 	// https://hostname:port/v1
 	// +kubebuilder:validation:MinItems=1
+	// +listType=atomic
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	EndPointURLs []string `json:"endPointURLs"`
 
-	// ServerName is used to verify the hostname on the returned
+	// serverName is used to verify the hostname on the returned
 	// certificates. It is also included
 	// in the client's handshake to support virtual hosting unless it is
 	// an IP address.
 	// Defaults to the host part parsed from Server
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	ServerName string `json:"serverName,omitempty"`
 
-	// CredentialSecretRef is an object name of kind Secret.
+	// credentialSecretRef is an object name of kind Secret.
 	// It will be used to access and configure the HAProxy load balancer DataPlane API servers.
 	// The following fields are optional:
 	//
@@ -57,6 +62,7 @@ type HAProxyLoadBalancerConfigSpec struct {
 	//   username: <base64_Encoded>
 	//   password: <base64_Encoded>
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	CredentialSecretRef ClientSecretReference `json:"credentialSecretRef,omitempty"`
 }
 
@@ -70,11 +76,20 @@ type HAProxyLoadBalancerConfigStatus struct {
 // +kubebuilder:resource:scope=Cluster
 
 // HAProxyLoadBalancerConfig is the Schema for the HAProxyLoadBalancerConfigs API
+// +kubebuilder:subresource:status
 type HAProxyLoadBalancerConfig struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// metadata is the standard object's metadata.
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   HAProxyLoadBalancerConfigSpec   `json:"spec,omitempty"`
+	// spec describes the desired HAProxy load balancer configuration.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
+	Spec HAProxyLoadBalancerConfigSpec `json:"spec,omitempty"`
+	// status reflects the observed state of the HAProxy load balancer configuration.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Status HAProxyLoadBalancerConfigStatus `json:"status,omitempty"`
 }
 
@@ -84,7 +99,8 @@ type HAProxyLoadBalancerConfig struct {
 type HAProxyLoadBalancerConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []HAProxyLoadBalancerConfig `json:"items"`
+	// +kubebuilder:validation:Required
+	Items []HAProxyLoadBalancerConfig `json:"items"`
 }
 
 func init() {

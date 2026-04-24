@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2025 Broadcom. All Rights Reserved.
+// Copyright (c) 2020-2026 Broadcom. All Rights Reserved.
 // Broadcom Confidential. The term "Broadcom" refers to Broadcom Inc.
 // and/or its subsidiaries.
 
@@ -33,15 +33,25 @@ const (
 
 // NetworkProviderReference contains info to locate a network provider object.
 type NetworkProviderReference struct {
-	// APIGroup is the group for the resource being referenced.
+	// apiGroup is the group for the resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	APIGroup string `json:"apiGroup"`
-	// Kind is the type of resource being referenced.
+	// kind is the type of resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Kind string `json:"kind"`
-	// Name is the name of resource being referenced.
+	// name is the name of resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Name string `json:"name"`
-	// Namespace of the resource being referenced. If empty, cluster scoped resource is assumed.
+	// namespace of the resource being referenced. If empty, cluster scoped resource is assumed.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Namespace string `json:"namespace,omitempty"`
-	// API version of the referent.
+	// apiVersion is the API version of the referent.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	APIVersion string `json:"apiVersion,omitempty"`
 }
 
@@ -61,50 +71,80 @@ const (
 
 // NetworkSpec defines the state of Network.
 type NetworkSpec struct {
-	// Type describes type of Network. Supported values are nsx-t, vsphere-distributed.
+	// type describes type of Network. Supported values are nsx-t, vsphere-distributed.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Type NetworkType `json:"type"`
-	// ProviderRef is reference to a network provider object that provides this type of network.
+	// providerRef is reference to a network provider object that provides this type of network.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	ProviderRef NetworkProviderReference `json:"providerRef"`
-	// DNS is a list of DNS server IPs to associate with network interfaces on this network.
+	// dns is a list of DNS server IPs to associate with network interfaces on this network.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	DNS []string `json:"dns,omitempty"`
-	// DNSSearchDomains is a list of DNS search domains to associate with network interfaces on this network.
+	// dnsSearchDomains is a list of DNS search domains to associate with network interfaces on this network.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	DNSSearchDomains []string `json:"dnsSearchDomains,omitempty"`
-	// NTP is a list of NTP server DNS names or IP addresses to use on this network.
+	// ntp is a list of NTP server DNS names or IP addresses to use on this network.
+	// +listType=atomic
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	NTP []string `json:"ntp,omitempty"`
 }
 
 // NetworkCondition describes the state of a Network at a certain point.
 type NetworkCondition struct {
-	// Type is the type of network condition.
+	// type is the type of network condition.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Type NetworkConditionType `json:"type"`
-	// Status is the status of the condition.
+	// status is the status of the condition.
 	// Can be True, False, Unknown.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL requiredfields (wire shape unchanged).
 	Status corev1.ConditionStatus `json:"status"`
-	// LastTransitionTime is the timestamp corresponding to the last status
+	// lastTransitionTime is the timestamp corresponding to the last status
 	// change of this condition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Reason is a machine understandable string that gives the reason for condition's last transition.
+	// reason is a machine understandable string that gives the reason for condition's last transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Reason NetworkConditionReason `json:"reason,omitempty"`
-	// Message is a human-readable message indicating details about last transition.
+	// message is a human-readable message indicating details about last transition.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Message string `json:"message,omitempty"`
 }
 
 // NetworkStatus defines the observed state of Network.
 type NetworkStatus struct {
-	// Conditions is an array of current observed network conditions.
+	// conditions is an array of current observed network conditions.
+	// +listType=atomic
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: KAL conditions (wire shape unchanged).
 	Conditions []NetworkCondition `json:"conditions,omitempty"`
 }
 
 // NetworkReference is an object that points to a Network.
 type NetworkReference struct {
-	// Kind is the type of resource being referenced.
+	// kind is the type of resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Kind string `json:"kind"`
-	// Name is the name of resource being referenced.
+	// name is the name of resource being referenced.
+	// +required
+	//nolint:kubeapilinter // Stable v1alpha1: KAL maxlength (wire shape unchanged).
 	Name string `json:"name"`
-	// APIVersion of the referent.
+	// apiVersion of the referent.
 	//
 	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	APIVersion string `json:"apiVersion,omitempty"`
 }
 
@@ -116,10 +156,18 @@ type NetworkReference struct {
 // in a namespace. A NetworkInterface resource references a Network.
 // +kubebuilder:subresource:status
 type Network struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// metadata is the standard object's metadata.
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   NetworkSpec   `json:"spec,omitempty"`
+	// spec describes the desired network configuration.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
+	Spec NetworkSpec `json:"spec,omitempty"`
+	// status reflects the observed state of the network.
+	// +optional
+	//nolint:kubeapilinter // Stable v1alpha1: preserve API wire type and markers; new fields should comply with KAL.
 	Status NetworkStatus `json:"status,omitempty"`
 }
 
@@ -129,7 +177,8 @@ type Network struct {
 type NetworkList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Network `json:"items"`
+	// +required
+	Items []Network `json:"items"`
 }
 
 func init() {
