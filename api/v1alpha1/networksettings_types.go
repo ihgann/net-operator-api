@@ -30,15 +30,17 @@ const (
 // Consumers should treat it as observed, realized state, and expect it to track the network topology
 // backing the namespace.
 type NetworkSettings struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// metadata is the standard object's metadata.
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Provider is the active network provider in this namespace. Workloads and network-aware
+	// provider is the active network provider in this namespace. Workloads and network-aware
 	// components should use this to determine the network backing that is in effect, including
 	// when choosing defaulting behavior or which provider-specific APIs to use when not specified
 	// elsewhere.
 	//
-	// +kubebuilder:validation:Required
+	// +required
 	// +kubebuilder:validation:Enum=vsphere-distributed;nsx-tier1;vpc
 	Provider NetworkSettingsProvider `json:"provider"`
 }
