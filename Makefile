@@ -22,6 +22,8 @@ CLIENT_GEN         := $(TOOLS_BIN_DIR)/client-gen
 INFORMER_GEN       := $(TOOLS_BIN_DIR)/informer-gen
 LISTER_GEN         := $(TOOLS_BIN_DIR)/lister-gen
 GOLANGCI_LINT      := $(TOOLS_BIN_DIR)/golangci-lint
+GOLANGCI_LINT_KAL  := $(abspath $(TOOLS_BIN_DIR)/golangci-lint-kal)
+GOLANGCI_KAL_CONFIG := $(abspath hack/.golangci-kal.yml)
 
 CLIENT_GEN_SCRIPT  := hack/client-gen.sh
 
@@ -95,6 +97,7 @@ generate-client: tools ## Generate api client
 .PHONY: lint
 lint: ## Run all the lint targets
 	$(MAKE) lint-go-full
+	$(MAKE) lint-kal
 	$(MAKE) lint-markdown
 	$(MAKE) lint-shell
 
@@ -114,6 +117,15 @@ lint-markdown: ## Lint the project's markdown
 .PHONY: lint-shell
 lint-shell: ## Lint the project's shell scripts
 	docker run --rm -v "$$(pwd)":/mnt:ro koalaman/shellcheck:stable $$(ls hack/*.sh)
+
+# Kube-API-Linter runs via golangci-lint-kal (Go 1.24+ to build; see hack/tools/Makefile golangci-lint-kal).
+GOLANGCI_LINT_KAL_EXTRA_ARGS ?=
+.PHONY: lint-kal
+lint-kal: $(GOLANGCI_KAL_CONFIG) $(GOLANGCI_LINT_KAL) ## Run kube-api-linter on api/ types
+	$(GOLANGCI_LINT_KAL) run --config $(GOLANGCI_KAL_CONFIG) $(GOLANGCI_LINT_KAL_EXTRA_ARGS) ./api/...
+
+$(GOLANGCI_LINT_KAL):
+	$(MAKE) -C $(TOOLS_DIR) golangci-lint-kal
 
 ## --------------------------------------
 ##@ Cleanup
