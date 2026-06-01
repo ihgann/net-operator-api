@@ -242,14 +242,129 @@ type VPCConfig struct {
 	DefaultSubnetSize int32 `json:"defaultSubnetSize,omitempty"`
 }
 
+// NSXLoadBalancerSize defines the load balancer size for an NSX-backed namespace.
+//
+// +kubebuilder:validation:Enum=Small;Medium;Large
+type NSXLoadBalancerSize string
+
+const (
+	// NSXLoadBalancerSizeSmall is a small load balancer, suitable for 10–20 virtual servers.
+	NSXLoadBalancerSizeSmall NSXLoadBalancerSize = "Small"
+
+	// NSXLoadBalancerSizeMedium is a medium load balancer, suitable for up to 100 virtual servers.
+	NSXLoadBalancerSizeMedium NSXLoadBalancerSize = "Medium"
+
+	// NSXLoadBalancerSizeLarge is a large load balancer, suitable for up to 1000 virtual servers.
+	NSXLoadBalancerSizeLarge NSXLoadBalancerSize = "Large"
+)
+
+// NSXTier1RoutingMode defines the routing mode for an NSX Tier-1 namespace.
+//
+// +kubebuilder:validation:Enum=NAT;Routed
+type NSXTier1RoutingMode string
+
+const (
+	// NSXTier1RoutingModeNAT indicates that traffic leaving the namespace is
+	// NATed to external IPs drawn from egressCIDRs.
+	NSXTier1RoutingModeNAT NSXTier1RoutingMode = "NAT"
+
+	// NSXTier1RoutingModeRouted indicates that traffic is forwarded without NAT.
+	// egressCIDRs must not be set when this mode is selected.
+	NSXTier1RoutingModeRouted NSXTier1RoutingMode = "Routed"
+)
+
+// NSXTier1Config specifies the NSX Tier-1 override configuration for a namespace.
+//
+// When this field is absent on the parent NamespaceNetworkSpec, the namespace
+// inherits the cluster-level NCP defaults (inherit mode). When present, the
+// fields here override those defaults for this namespace (override mode).
+//
+// +kubebuilder:validation:XValidation:rule="!has(self.routingMode) || self.routingMode != 'Routed' || !has(self.egressCIDRs) || self.egressCIDRs.size() == 0",message="egressCIDRs must not be set when routingMode is Routed"
+// +kubebuilder:validation:XValidation:rule="!has(self.tier0Gateway) || self.tier0Gateway == '' || (has(self.namespaceCIDRs) && self.namespaceCIDRs.size() > 0)",message="namespaceCIDRs must be set when tier0Gateway is specified"
+// +kubebuilder:validation:XValidation:rule="!has(self.tier0Gateway) || self.tier0Gateway == '' || (has(self.ingressCIDRs) && self.ingressCIDRs.size() > 0)",message="ingressCIDRs must be set when tier0Gateway is specified"
+// +kubebuilder:validation:XValidation:rule="oldSelf.tier0Gateway == '' || self.tier0Gateway == oldSelf.tier0Gateway",message="tier0Gateway is immutable once set"
+// +kubebuilder:validation:XValidation:rule="oldSelf.routingMode == '' || self.routingMode == oldSelf.routingMode",message="routingMode is immutable once set"
+// +kubebuilder:validation:XValidation:rule="oldSelf.loadBalancerSize == '' || self.loadBalancerSize == oldSelf.loadBalancerSize",message="loadBalancerSize is immutable once set"
+type NSXTier1Config struct {
+	// namespaceCIDRs specifies CIDR blocks from which Kubernetes allocates IP
+	// addresses for all workloads that attach to the namespace, including
+	// PodVMs, TKGs, and VM Service VMs. These ranges must not overlap with
+	// ingressCIDRs, egressCIDRs, or other services running in the datacenter.
+	// Required when tier0Gateway or any of ingressCIDRs or egressCIDRs are
+	// specified. Immutable once set.
+	//
+	// +optional
+	// +kubebuilder:validation:MaxItems=16
+	// +kubebuilder:validation:items:MaxLength=64
+	// +listType=atomic
+	NamespaceCIDRs []string `json:"namespaceCIDRs,omitempty"`
+
+	// ingressCIDRs specifies CIDR blocks from which NSX assigns IP addresses
+	// for Kubernetes Ingresses and Services of type LoadBalancer. These ranges
+	// must not overlap with namespaceCIDRs, egressCIDRs, or other services
+	// running in the datacenter. Required when tier0Gateway or any of
+	// namespaceCIDRs or egressCIDRs are specified. Immutable once set.
+	//
+	// +optional
+	// +kubebuilder:validation:MaxItems=16
+	// +kubebuilder:validation:items:MaxLength=64
+	// +listType=atomic
+	IngressCIDRs []string `json:"ingressCIDRs,omitempty"`
+
+	// egressCIDRs specifies CIDR blocks from which NSX assigns IPs used for
+	// SNAT from container IPs to external IPs. Must not be set when routingMode
+	// is Routed. Required when routingMode is NAT and tier0Gateway or any of
+	// namespaceCIDRs or ingressCIDRs are specified. Immutable once set.
+	//
+	// +optional
+	// +kubebuilder:validation:MaxItems=16
+	// +kubebuilder:validation:items:MaxLength=64
+	// +listType=atomic
+	EgressCIDRs []string `json:"egressCIDRs,omitempty"`
+
+	// tier0Gateway is the NSX policy path of the Tier-0 Gateway used for this
+	// namespace. When unset, the cluster-level Tier-0 Gateway from the NCP
+	// configuration is applied. This field is immutable once set.
+	//
+	// +optional
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=2048
+	Tier0Gateway string `json:"tier0Gateway,omitempty"`
+
+	// subnetPrefixLength is the prefix length of subnets reserved for namespace
+	// segments (e.g. 28 for a /28 subnet). When unset, the cluster-level
+	// default from the NCP configuration is applied.
+	//
+	// +optional
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=128
+	SubnetPrefixLength int32 `json:"subnetPrefixLength,omitempty"`
+
+	// routingMode specifies whether traffic leaving the namespace is NATed.
+	// When set to Routed, egressCIDRs must not be specified. When unset,
+	// defaults to NAT at the NCP cluster level. This field is immutable once set.
+	//
+	// +optional
+	RoutingMode NSXTier1RoutingMode `json:"routingMode,omitempty"`
+
+	// loadBalancerSize specifies the size of the NSX Load Balancer provisioned
+	// for this namespace. When unset, defaults to Small. This field is immutable
+	// once set.
+	//
+	// +optional
+	LoadBalancerSize NSXLoadBalancerSize `json:"loadBalancerSize,omitempty"`
+}
+
 // NamespaceNetworkSpec defines the desired network configuration
 // for Namespaces associated with this NamespaceNetworkConfiguration.
 //
 // The type field selects the active network provider. For the vsphere-distributed
 // provider, vsphereDistributedConfig must be populated. For the vpc provider,
-// vpcConfig must be populated.
+// vpcConfig must be populated. For the nsx-tier1 provider, nsxTier1Config may
+// optionally be populated to override cluster-level NCP defaults; when absent
+// the namespace inherits those defaults.
 //
-// +kubebuilder:validation:XValidation:rule="self.type == 'vsphere-distributed' || self.type == 'vpc'",message="only vsphere-distributed and vpc are currently supported; nsx-tier1 will be introduced in a future version"
+// +kubebuilder:validation:XValidation:rule="self.type == 'vsphere-distributed' || self.type == 'vpc' || self.type == 'nsx-tier1'",message="type must be one of: vsphere-distributed, vpc, nsx-tier1"
 // +kubebuilder:validation:XValidation:rule="self.type == 'vsphere-distributed' ? (has(self.vsphereDistributedConfig.networks) && self.vsphereDistributedConfig.networks.size() > 0) : true",message="vsphereDistributedConfig.networks must contain at least one entry when type is vsphere-distributed"
 // +kubebuilder:validation:XValidation:rule="self.type == 'vpc' ? (has(self.vpcConfig) && (self.vpcConfig.vpc != '' || has(self.vpcConfig.autoCreateConfig))) : true",message="vpcConfig must have either vpc (pre-created VPC mode) or autoCreateConfig (auto-create VPC mode) set when type is vpc"
 type NamespaceNetworkSpec struct {
@@ -274,6 +389,14 @@ type NamespaceNetworkSpec struct {
 	//
 	// +optional
 	VPCConfig *VPCConfig `json:"vpcConfig,omitempty"`
+
+	// nsxTier1Config contains the NSX Tier-1 override configuration.
+	// Applicable when type is nsx-tier1. When absent, the namespace inherits
+	// the cluster-level NCP configuration. When present, the fields here
+	// override those cluster-level defaults for this namespace.
+	//
+	// +optional
+	NSXTier1Config *NSXTier1Config `json:"nsxTier1Config,omitempty"`
 }
 
 // NamespaceNetworkAssociation describes the reconciliation state of a
