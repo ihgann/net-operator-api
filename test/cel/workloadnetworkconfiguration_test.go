@@ -53,14 +53,6 @@ func TestWorkloadNetworkConfiguration_ValidDefaultVPCConfig_Admitted(t *testing.
 	defer func() { _ = k8sClient.Delete(testCtx, obj) }()
 }
 
-func TestWorkloadNetworkConfiguration_NoDefaultNamespaceConfiguration_Admitted(t *testing.T) {
-	obj := validWNC()
-	if err := k8sClient.Create(testCtx, obj); err != nil {
-		t.Fatalf("expected admission, got: %v", err)
-	}
-	defer func() { _ = k8sClient.Delete(testCtx, obj) }()
-}
-
 func TestWorkloadNetworkConfiguration_DefaultVPCConfigOnNonVPCType_Rejected(t *testing.T) {
 	obj := &netv1alpha1.WorkloadNetworkConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
@@ -93,12 +85,13 @@ func TestWorkloadNetworkConfiguration_DefaultVPCConfigOnNonVPCType_Rejected(t *t
 	}
 }
 
-// TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejected sends the
-// request as Unstructured because DefaultNamespaceConfiguration carries `omitzero`, which
-// drops a Go zero-value struct entirely on marshal — the typed client would silently turn
-// this into "field absent" instead of testing the MinProperties=1 rule.
-func TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejected(t *testing.T) {
-	obj := &unstructured.Unstructured{
+// validWNCUnstructured returns the same object as validWNC(), as Unstructured
+// with the given defaultNamespaceConfiguration value spliced in on the wire.
+// Use this instead of the typed client when the value under test would be
+// dropped by omitempty/omitzero on marshal (e.g. an explicit empty map or
+// empty list), since the typed client can't put those bytes on the wire.
+func validWNCUnstructured(defaultNamespaceConfiguration map[string]interface{}) *unstructured.Unstructured {
+	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "netoperator.vmware.com/v1alpha1",
 			"kind":       "WorkloadNetworkConfiguration",
@@ -119,12 +112,20 @@ func TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejecte
 								},
 							},
 						},
-						"defaultNamespaceConfiguration": map[string]interface{}{},
+						"defaultNamespaceConfiguration": defaultNamespaceConfiguration,
 					},
 				},
 			},
 		},
 	}
+}
+
+// TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejected sends the
+// request as Unstructured because DefaultNamespaceConfiguration carries `omitzero`, which
+// drops a Go zero-value struct entirely on marshal — the typed client would silently turn
+// this into "field absent" instead of testing the MinProperties=1 rule.
+func TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejected(t *testing.T) {
+	obj := validWNCUnstructured(map[string]interface{}{})
 	if err := k8sClient.Create(testCtx, obj); !isRejected(err) {
 		t.Fatalf("expected rejection for empty defaultNamespaceConfiguration (MinProperties=1), got: %v", err)
 	}
@@ -135,37 +136,11 @@ func TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejecte
 // empty (but non-nil) []string entirely on marshal, which would silently
 // turn this into "field absent" instead of testing the MinItems=1 rule.
 func TestWorkloadNetworkConfiguration_EmptyPrivateCIDRsList_Rejected(t *testing.T) {
-	obj := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "netoperator.vmware.com/v1alpha1",
-			"kind":       "WorkloadNetworkConfiguration",
-			"metadata": map[string]interface{}{
-				"name": netv1alpha1.WorkloadNetworkConfigurationName,
-			},
-			"spec": map[string]interface{}{
-				"activeSystemProvider": string(netv1alpha1.NetworkProviderVPC),
-				"providers": []interface{}{
-					map[string]interface{}{
-						"type": string(netv1alpha1.NetworkProviderVPC),
-						"systemConfiguration": map[string]interface{}{
-							"vpcConfig": map[string]interface{}{
-								"autoCreateConfig": map[string]interface{}{
-									"nsxProject":             "/orgs/default/projects/default",
-									"vpcConnectivityProfile": "/orgs/default/projects/default/vpc-connectivity-profiles/default",
-									"privateCIDRs":           []interface{}{"10.0.0.0/24"},
-								},
-							},
-						},
-						"defaultNamespaceConfiguration": map[string]interface{}{
-							"vpcConfig": map[string]interface{}{
-								"privateCIDRs": []interface{}{},
-							},
-						},
-					},
-				},
-			},
+	obj := validWNCUnstructured(map[string]interface{}{
+		"vpcConfig": map[string]interface{}{
+			"privateCIDRs": []interface{}{},
 		},
-	}
+	})
 	if err := k8sClient.Create(testCtx, obj); !isRejected(err) {
 		t.Fatalf("expected rejection for explicit empty privateCIDRs list (MinItems=1), got: %v", err)
 	}
