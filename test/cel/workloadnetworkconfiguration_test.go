@@ -72,7 +72,12 @@ func TestWorkloadNetworkConfiguration_DefaultVPCConfigOnNonVPCType_Rejected(t *t
 				{
 					Type: netv1alpha1.NetworkProviderVSphereDistributed,
 					SystemConfiguration: &netv1alpha1.NamespaceNetworkConfig{
-						VSphereDistributedConfig: netv1alpha1.VSphereDistributedConfig{},
+						VSphereDistributedConfig: netv1alpha1.VSphereDistributedConfig{
+							Networks: []netv1alpha1.VSphereDistributedNetworkRef{
+								{Name: "net-1"},
+							},
+							DefaultNetwork: "net-1",
+						},
 					},
 					DefaultNamespaceConfiguration: &netv1alpha1.NetworkProviderDefaultConfig{
 						VPCConfig: &netv1alpha1.DefaultVPCConfig{
