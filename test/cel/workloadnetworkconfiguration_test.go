@@ -42,7 +42,7 @@ func validWNC() *netv1alpha1.WorkloadNetworkConfiguration {
 
 func TestWorkloadNetworkConfiguration_ValidDefaultVPCConfig_Admitted(t *testing.T) {
 	obj := validWNC()
-	obj.Spec.Providers[0].DefaultNamespaceConfiguration = &netv1alpha1.NetworkProviderDefaultConfig{
+	obj.Spec.Providers[0].DefaultNamespaceConfiguration = netv1alpha1.NetworkProviderDefaultConfig{
 		VPCConfig: &netv1alpha1.DefaultVPCConfig{
 			PrivateCIDRs: []string{"10.1.0.0/24"},
 		},
@@ -79,7 +79,7 @@ func TestWorkloadNetworkConfiguration_DefaultVPCConfigOnNonVPCType_Rejected(t *t
 							DefaultNetwork: "net-1",
 						},
 					},
-					DefaultNamespaceConfiguration: &netv1alpha1.NetworkProviderDefaultConfig{
+					DefaultNamespaceConfiguration: netv1alpha1.NetworkProviderDefaultConfig{
 						VPCConfig: &netv1alpha1.DefaultVPCConfig{
 							PrivateCIDRs: []string{"10.1.0.0/24"},
 						},
@@ -93,9 +93,38 @@ func TestWorkloadNetworkConfiguration_DefaultVPCConfigOnNonVPCType_Rejected(t *t
 	}
 }
 
+// TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejected sends the
+// request as Unstructured because DefaultNamespaceConfiguration carries `omitzero`, which
+// drops a Go zero-value struct entirely on marshal — the typed client would silently turn
+// this into "field absent" instead of testing the MinProperties=1 rule.
 func TestWorkloadNetworkConfiguration_EmptyDefaultNamespaceConfiguration_Rejected(t *testing.T) {
-	obj := validWNC()
-	obj.Spec.Providers[0].DefaultNamespaceConfiguration = &netv1alpha1.NetworkProviderDefaultConfig{}
+	obj := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "netoperator.vmware.com/v1alpha1",
+			"kind":       "WorkloadNetworkConfiguration",
+			"metadata": map[string]interface{}{
+				"name": netv1alpha1.WorkloadNetworkConfigurationName,
+			},
+			"spec": map[string]interface{}{
+				"activeSystemProvider": string(netv1alpha1.NetworkProviderVPC),
+				"providers": []interface{}{
+					map[string]interface{}{
+						"type": string(netv1alpha1.NetworkProviderVPC),
+						"systemConfiguration": map[string]interface{}{
+							"vpcConfig": map[string]interface{}{
+								"autoCreateConfig": map[string]interface{}{
+									"nsxProject":             "/orgs/default/projects/default",
+									"vpcConnectivityProfile": "/orgs/default/projects/default/vpc-connectivity-profiles/default",
+									"privateCIDRs":           []interface{}{"10.0.0.0/24"},
+								},
+							},
+						},
+						"defaultNamespaceConfiguration": map[string]interface{}{},
+					},
+				},
+			},
+		},
+	}
 	if err := k8sClient.Create(testCtx, obj); !isRejected(err) {
 		t.Fatalf("expected rejection for empty defaultNamespaceConfiguration (MinProperties=1), got: %v", err)
 	}
@@ -144,7 +173,7 @@ func TestWorkloadNetworkConfiguration_EmptyPrivateCIDRsList_Rejected(t *testing.
 
 func TestWorkloadNetworkConfiguration_DefaultPrivateCIDRsFullReplace_Admitted(t *testing.T) {
 	obj := validWNC()
-	obj.Spec.Providers[0].DefaultNamespaceConfiguration = &netv1alpha1.NetworkProviderDefaultConfig{
+	obj.Spec.Providers[0].DefaultNamespaceConfiguration = netv1alpha1.NetworkProviderDefaultConfig{
 		VPCConfig: &netv1alpha1.DefaultVPCConfig{
 			PrivateCIDRs: []string{"10.1.0.0/24"},
 		},

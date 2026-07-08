@@ -308,7 +308,7 @@ type VSphereDistributedNetworkRef struct {
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:MaxLength=253
 	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`
-	Name string `json:"name"`
+	Name string `json:"name"` //nolint:kubeapilinter // listMapKey field: K8s 1.29+ requires list-map keys to be schema-required or have a default; controller-gen only emits "required" when omitempty is absent, so omitempty must stay off here despite KAL's general preference.
 }
 
 func init() {

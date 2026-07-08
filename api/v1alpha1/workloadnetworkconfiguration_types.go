@@ -45,7 +45,7 @@ type NetworkProviderEntry struct {
 	// type identifies the network provider for this entry.
 	//
 	// +required
-	Type NetworkProvider `json:"type"`
+	Type NetworkProvider `json:"type"` //nolint:kubeapilinter // listMapKey field: K8s 1.29+ requires list-map keys to be schema-required or have a default; controller-gen only emits "required" when omitempty is absent, so omitempty must stay off here despite KAL's general preference.
 
 	// systemConfiguration holds the provider-specific NNC template for this provider.
 	//
@@ -63,7 +63,7 @@ type NetworkProviderEntry struct {
 	// under this provider are unaffected.
 	//
 	// +optional
-	DefaultNamespaceConfiguration *NetworkProviderDefaultConfig `json:"defaultNamespaceConfiguration,omitempty"`
+	DefaultNamespaceConfiguration NetworkProviderDefaultConfig `json:"defaultNamespaceConfiguration,omitempty,omitzero"`
 }
 
 // +kubebuilder:validation:XValidation:rule="self.providers.exists(p, p.type == self.activeSystemProvider)",message="activeSystemProvider must reference a provider type declared in providers"
