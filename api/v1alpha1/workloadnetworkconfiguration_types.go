@@ -45,7 +45,7 @@ type NetworkProviderEntry struct {
 	// type identifies the network provider for this entry.
 	//
 	// +required
-	Type NetworkProvider `json:"type,omitempty"`
+	Type NetworkProvider `json:"type"`
 
 	// systemConfiguration holds the provider-specific NNC template for this provider.
 	//

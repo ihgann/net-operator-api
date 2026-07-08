@@ -118,7 +118,7 @@ type SharedSubnet struct {
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:MaxLength=253
 	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 
 	// podDefault indicates this Subnet is the default network for Pod workloads
 	// in this Namespace. At most one entry in sharedSubnets may be set to True.
