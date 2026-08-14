@@ -37,7 +37,7 @@ const (
 
 	// PreExistingNSXNetworkConfigAnnotation, when set on a
 	// NamespaceNetworkConfiguration at creation time, names a pre-existing
-	// NSXNetworkConfiguration for the tier1 reconciler to adopt (1:1) instead of
+	// NSXNetworkConfiguration for the reconciler to adopt (1:1) instead of
 	// auto-creating one named after this resource. This supports brownfield
 	// namespaces provisioned before adoption by this NamespaceNetworkConfiguration.
 	//
